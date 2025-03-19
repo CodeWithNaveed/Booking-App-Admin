@@ -33,19 +33,19 @@ const Sidebar = () => {
             <span>Dashboard</span>
           </li>
           <p className="title">LISTS</p>
-          <Link to="https://booking-app-api-production-8253.up.railway.app/api/users" style={{ textDecoration: "none" }}>
+          <Link to="/users" style={{ textDecoration: "none" }}>
             <li>
               <PersonOutlineIcon className="icon" />
               <span>Users</span>
             </li>
           </Link>
-          <Link to="https://booking-app-api-production-8253.up.railway.app/api/hotels" style={{ textDecoration: "none" }}>
+          <Link to="/hotels" style={{ textDecoration: "none" }}>
             <li>
               <StoreIcon className="icon" />
               <span>Hotels</span>
             </li>
           </Link>
-          <Link to="https://booking-app-api-production-8253.up.railway.app/api/rooms" style={{ textDecoration: "none" }}>
+          <Link to="/rooms" style={{ textDecoration: "none" }}>
             <li>
               <CreditCardIcon className="icon" />
               <span>Rooms</span>
