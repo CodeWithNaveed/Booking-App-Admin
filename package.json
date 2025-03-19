@@ -56,5 +56,5 @@
     "resolve-url-loader": "^3.1.4",
     "sass": "^1.83.4"
   },
-  "proxy": "http://localhost:4400/api"
+  "proxy": "https://booking-app-api-production-8253.up.railway.app/api"
 }
