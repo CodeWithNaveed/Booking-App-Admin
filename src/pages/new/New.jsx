@@ -32,7 +32,7 @@ const New = ({ inputs, title }) => {
         img: url,
       };
 
-      await axios.post("/auth/register", newUser);
+      await axios.post("https://booking-app-api-production-8253.up.railway.app/api/auth/register", newUser);
     } catch (err) {
       console.log(err);
     }

@@ -52,7 +52,7 @@ const NewHotel = () => {
         photos: list,
       };
 
-      await axios.post("/hotels", newhotel);
+      await axios.post("https://booking-app-api-production-8253.up.railway.app/api/hotels", newhotel);
     } catch (err) { console.log(err) }
   };
   return (
