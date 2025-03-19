@@ -16,8 +16,7 @@ import { DarkModeContext } from "../../context/darkModeContext";
 import { useContext } from "react";
 
 const Sidebar = () => {
-  const { dispatch } = useContext(DarkModeContext) || {}; // Prevent crash if context is missing
-
+  const { dispatch } = useContext(DarkModeContext);
   return (
     <div className="sidebar">
       <div className="top">
@@ -34,25 +33,24 @@ const Sidebar = () => {
             <span>Dashboard</span>
           </li>
           <p className="title">LISTS</p>
-          {/* ✅ Replaced <Link> with <a> for external API URLs */}
-          <a href="https://booking-app-api-production-8253.up.railway.app/api/users" target="_blank" rel="noopener noreferrer">
+          <Link to="https://booking-app-api-production-8253.up.railway.app/api/users" style={{ textDecoration: "none" }}>
             <li>
               <PersonOutlineIcon className="icon" />
               <span>Users</span>
             </li>
-          </a>
-          <a href="https://booking-app-api-production-8253.up.railway.app/api/hotels" target="_blank" rel="noopener noreferrer">
+          </Link>
+          <Link to="https://booking-app-api-production-8253.up.railway.app/api/hotels" style={{ textDecoration: "none" }}>
             <li>
               <StoreIcon className="icon" />
               <span>Hotels</span>
             </li>
-          </a>
-          <a href="https://booking-app-api-production-8253.up.railway.app/api/rooms" target="_blank" rel="noopener noreferrer">
+          </Link>
+          <Link to="https://booking-app-api-production-8253.up.railway.app/api/rooms" style={{ textDecoration: "none" }}>
             <li>
               <CreditCardIcon className="icon" />
               <span>Rooms</span>
             </li>
-          </a>
+          </Link>
           <li>
             <LocalShippingIcon className="icon" />
             <span>Delivery</span>
@@ -91,8 +89,14 @@ const Sidebar = () => {
         </ul>
       </div>
       <div className="bottom">
-        <div className="colorOption" onClick={() => dispatch && dispatch({ type: "LIGHT" })}></div>
-        <div className="colorOption" onClick={() => dispatch && dispatch({ type: "DARK" })}></div>
+        <div
+          className="colorOption"
+          onClick={() => dispatch({ type: "LIGHT" })}
+        ></div>
+        <div
+          className="colorOption"
+          onClick={() => dispatch({ type: "DARK" })}
+        ></div>
       </div>
     </div>
   );

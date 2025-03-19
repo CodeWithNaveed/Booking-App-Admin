@@ -60,7 +60,7 @@ const Datatable = ({columns}) => {
         pageSize={9}
         rowsPerPageOptions={[9]}
         checkboxSelection
-        getRowId={(row) => row._id || row.id || Math.random()} 
+        getRowId={(row) => row._id}
       />
     </div>
   );
