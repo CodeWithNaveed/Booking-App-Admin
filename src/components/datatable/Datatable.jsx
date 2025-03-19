@@ -23,8 +23,10 @@ const Datatable = ({ columns }) => {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`/${path}/${id}`);
-      setList(list.filter((item) => item._id !== id));
-    } catch (err) { }
+      setList((prevList) => prevList.filter((item) => item._id !== id));
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
   };
 
   const actionColumn = [
@@ -59,12 +61,12 @@ const Datatable = ({ columns }) => {
       </div>
       <DataGrid
         className="datagrid"
-        rows={list || []} // Ensure it's an array
+        rows={list || []} // Ensure it's always an array
         columns={columns.concat(actionColumn)}
         pageSize={9}
         rowsPerPageOptions={[9]}
         checkboxSelection
-        getRowId={(row) => row._id || Math.random()} // Fallback ID
+        getRowId={(row, index) => row._id || `fallback-${index}`} // Safer fallback
       />
     </div>
   );
