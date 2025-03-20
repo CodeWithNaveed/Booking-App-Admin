@@ -6,9 +6,8 @@ import { useState } from "react";
 import axios from "axios";
 
 const New = ({ inputs, title }) => {
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState("");
   const [info, setInfo] = useState({});
-  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -16,38 +15,29 @@ const New = ({ inputs, title }) => {
 
   const handleClick = async (e) => {
     e.preventDefault();
-    if (!file) {
-      alert("Please select a file");
-      return;
-    }
-    setLoading(true);
-
+    const data = new FormData();
+    data.append("file", file);
+    data.append("upload_preset", "upload");
     try {
-      const data = new FormData();
-      data.append("file", file);
-      data.append("upload_preset", "upload");
-
       const uploadRes = await axios.post(
         "https://api.cloudinary.com/v1_1/djwgfsrvl/image/upload",
         data
       );
 
       const { url } = uploadRes.data;
-      const newUser = { ...info, img: url };
 
-      await axios.post(
-        "https://booking-app-api-production-8253.up.railway.app/api/auth/register",
-        newUser
-      );
+      const newUser = {
+        ...info,
+        img: url,
+      };
 
-      alert("User registered successfully!");
+      await axios.post("https://booking-app-api-production-8253.up.railway.app/api/auth/register", newUser);
     } catch (err) {
-      alert(err.response?.data?.message || "Something went wrong");
-    } finally {
-      setLoading(false);
+      console.log(err);
     }
   };
 
+  console.log(info);
   return (
     <div className="new">
       <Sidebar />
@@ -64,7 +54,7 @@ const New = ({ inputs, title }) => {
                   ? URL.createObjectURL(file)
                   : "https://icon-library.com/images/no-image-icon/no-image-icon-0.jpg"
               }
-              alt="Selected Preview"
+              alt=""
             />
           </div>
           <div className="right">
@@ -80,6 +70,7 @@ const New = ({ inputs, title }) => {
                   style={{ display: "none" }}
                 />
               </div>
+
               {inputs.map((input) => (
                 <div className="formInput" key={input.id}>
                   <label>{input.label}</label>
@@ -91,9 +82,7 @@ const New = ({ inputs, title }) => {
                   />
                 </div>
               ))}
-              <button onClick={handleClick} disabled={loading}>
-                {loading ? "Uploading..." : "Send"}
-              </button>
+              <button onClick={handleClick}>Send</button>
             </form>
           </div>
         </div>
