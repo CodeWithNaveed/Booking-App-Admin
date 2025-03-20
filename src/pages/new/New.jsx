@@ -13,7 +13,7 @@ const New = ({ inputs, title }) => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await axios.get("https://booking-app-api-production-8253.up.railway.app/api/users");
+        const res = await axios.get("https://booking-app-api-production-8253.up.railway.app/api/users",{withCredentials: true} );
         setUsers(res.data);
       } catch (err) {
         console.log(err);
@@ -45,7 +45,7 @@ const New = ({ inputs, title }) => {
         img: url,
       };
 
-      await axios.post("https://booking-app-api-production-8253.up.railway.app/api/auth/register", newUser);
+      await axios.post("https://booking-app-api-production-8253.up.railway.app/api/auth/register", newUser,{withCredentials: true});
     } catch (err) {
       console.log(err);
     }
