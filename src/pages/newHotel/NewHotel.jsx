@@ -13,7 +13,7 @@ const NewHotel = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const { data, loading: roomLoading, error } = useFetch(
+  const { data, loading: roomLoading } = useFetch(
     "https://booking-app-api-production-8253.up.railway.app/api/rooms"
   );
 
@@ -28,8 +28,9 @@ const NewHotel = () => {
 
   const handleClick = async (e) => {
     e.preventDefault();
+
     if (!files.length) {
-      alert("Please select at least one image");
+      alert("❌ Please select at least one image!");
       return;
     }
 
@@ -51,16 +52,23 @@ const NewHotel = () => {
       );
 
       const newHotel = { ...info, rooms, photos: list };
+
+      // 🛠 Token uthao (authentication ke liye)
+      const token = localStorage.getItem("token");
+
       await axios.post(
         "https://booking-app-api-production-8253.up.railway.app/api/hotels",
-        newHotel
+        newHotel,
+        {
+          headers: { Authorization: `Bearer ${token}` }, // 👈 Token bhejna zaroori hai
+        }
       );
 
-      alert("Hotel added successfully!");
+      alert("✅ Hotel added successfully!");
       setInfo({});
       setFiles([]);
     } catch (err) {
-      alert(err.response?.data?.message || "Something went wrong");
+      alert(err.response?.data?.message || "❌ Unauthorized! Only admins can add hotels.");
     } finally {
       setLoading(false);
     }

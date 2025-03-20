@@ -24,7 +24,7 @@ const NewRoom = () => {
     e.preventDefault();
 
     if (!hotelId || !rooms.trim()) {
-      alert("Please fill all fields.");
+      alert("❌ Please fill all fields.");
       return;
     }
 
@@ -37,20 +37,27 @@ const NewRoom = () => {
       .filter(Boolean);
 
     if (roomNumbers.length === 0) {
-      alert("Please enter valid room numbers.");
+      alert("❌ Please enter valid room numbers.");
       return;
     }
 
     setLoading(true);
     try {
+      // 🛠 Token uthao (authentication ke liye)
+      const token = localStorage.getItem("token");
+
       await axios.post(
         `https://booking-app-api-production-8253.up.railway.app/api/rooms/${hotelId}`,
-        { ...info, roomNumbers }
+        { ...info, roomNumbers },
+        {
+          headers: { Authorization: `Bearer ${token}` }, // 👈 Token bhejna zaroori hai
+        }
       );
-      alert("Room added successfully!");
-      setRooms(""); // Clear input after successful submission
+
+      alert("✅ Room added successfully!");
+      setRooms(""); // Clear input after success
     } catch (err) {
-      alert(err.response?.data?.message || "Something went wrong");
+      alert(err.response?.data?.message || "❌ Unauthorized! Only admins can add rooms.");
     } finally {
       setLoading(false);
     }
