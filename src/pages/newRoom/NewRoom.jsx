@@ -1,7 +1,6 @@
 import "./newRoom.scss";
 import Sidebar from "../../components/sidebar/Sidebar";
 import Navbar from "../../components/navbar/Navbar";
-import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
 import { useState } from "react";
 import { roomInputs } from "../../formSource";
 import useFetch from "../../hooks/useFetch";
@@ -9,10 +8,11 @@ import axios from "axios";
 
 const NewRoom = () => {
   const [info, setInfo] = useState({});
-  const [hotelId, setHotelId] = useState(undefined);
-  const [rooms, setRooms] = useState([]);
+  const [hotelId, setHotelId] = useState("");
+  const [rooms, setRooms] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const { data, loading, error } = useFetch("https://booking-app-api-production-8253.up.railway.app/api/hotels");
+  const { data, loading: hotelLoading, error } = useFetch("https://booking-app-api-production-8253.up.railway.app/api/hotels");
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -20,15 +20,40 @@ const NewRoom = () => {
 
   const handleClick = async (e) => {
     e.preventDefault();
-    const roomNumbers = rooms.split(",").map((room) => ({ number: room }));
+
+    if (!hotelId || !rooms.trim()) {
+      alert("Please fill all fields.");
+      return;
+    }
+
+    const roomNumbers = rooms.split(",").map((room) => {
+      const trimmedRoom = room.trim();
+      if (!trimmedRoom.match(/^\d+$/)) {
+        alert("Room numbers must be valid numbers separated by commas.");
+        return null;
+      }
+      return { number: trimmedRoom };
+    }).filter(Boolean);
+
+    if (roomNumbers.length === 0) {
+      alert("Please enter at least one valid room number.");
+      return;
+    }
+
+    setLoading(true);
     try {
-      await axios.post(`https://booking-app-api-production-8253.up.railway.app/api/rooms/${hotelId}`, { ...info, roomNumbers });
+      await axios.post(
+        `https://booking-app-api-production-8253.up.railway.app/api/rooms/${hotelId}`,
+        { ...info, roomNumbers }
+      );
+      alert("Room added successfully!");
     } catch (err) {
-      console.log(err);
+      alert(err.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
-  console.log(info)
   return (
     <div className="new">
       <Sidebar />
@@ -55,24 +80,26 @@ const NewRoom = () => {
                 <label>Rooms</label>
                 <textarea
                   onChange={(e) => setRooms(e.target.value)}
-                  placeholder="give comma between room numbers."
+                  placeholder="Enter room numbers separated by commas (e.g., 101, 102, 103)."
                 />
               </div>
               <div className="formInput">
                 <label>Choose a hotel</label>
-                <select
-                  id="hotelId"
-                  onChange={(e) => setHotelId(e.target.value)}
-                >
-                  {loading
-                    ? "loading"
-                    : data &&
-                      data.map((hotel) => (
-                        <option key={hotel._id} value={hotel._id}>{hotel.name}</option>
-                      ))}
+                <select id="hotelId" onChange={(e) => setHotelId(e.target.value)}>
+                  {hotelLoading ? (
+                    <option>Loading...</option>
+                  ) : (
+                    data?.map((hotel) => (
+                      <option key={hotel._id} value={hotel._id}>
+                        {hotel.name}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
-              <button onClick={handleClick}>Send</button>
+              <button onClick={handleClick} disabled={loading}>
+                {loading ? "Submitting..." : "Send"}
+              </button>
             </form>
           </div>
         </div>

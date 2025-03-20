@@ -8,71 +8,80 @@ import useFetch from "../../hooks/useFetch";
 import axios from "axios";
 
 const NewHotel = () => {
-  const [files, setFiles] = useState("");
+  const [files, setFiles] = useState([]);
   const [info, setInfo] = useState({});
   const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const { data, loading, error } = useFetch("/rooms");
+  const { data, loading: roomLoading, error } = useFetch("/rooms");
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
   const handleSelect = (e) => {
-    const value = Array.from(
-      e.target.selectedOptions,
-      (option) => option.value
-    );
+    const value = Array.from(e.target.selectedOptions, (option) => option.value);
     setRooms(value);
   };
 
-  console.log(files)
-
   const handleClick = async (e) => {
     e.preventDefault();
+    if (!files.length) {
+      alert("Please select at least one image");
+      return;
+    }
+
+    setLoading(true);
     try {
       const list = await Promise.all(
         Object.values(files).map(async (file) => {
           const data = new FormData();
           data.append("file", file);
           data.append("upload_preset", "upload");
+
           const uploadRes = await axios.post(
             "https://api.cloudinary.com/v1_1/djwgfsrvl/image/upload",
             data
           );
 
-          const { url } = uploadRes.data;
-          return url;
+          return uploadRes.data.url;
         })
       );
 
-      const newhotel = {
-        ...info,
-        rooms,
-        photos: list,
-      };
+      const newHotel = { ...info, rooms, photos: list };
 
-      await axios.post("https://booking-app-api-production-8253.up.railway.app/api/hotels", newhotel);
-    } catch (err) { console.log(err) }
+      await axios.post("https://booking-app-api-production-8253.up.railway.app/api/hotels", newHotel);
+
+      alert("Hotel added successfully!");
+    } catch (err) {
+      alert(err.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
+
   return (
     <div className="new">
       <Sidebar />
       <div className="newContainer">
         <Navbar />
         <div className="top">
-          <h1>Add New Product</h1>
+          <h1>Add New Hotel</h1>
         </div>
         <div className="bottom">
           <div className="left">
-            <img
-              src={
-                files
-                  ? URL.createObjectURL(files[0])
-                  : "https://icon-library.com/images/no-image-icon/no-image-icon-0.jpg"
-              }
-              alt=""
-            />
+            {files.length > 0 ? (
+              <div className="imagePreview">
+                {Array.from(files).map((file, index) => (
+                  <img key={index} src={URL.createObjectURL(file)} alt={`preview ${index}`} />
+                ))}
+              </div>
+            ) : (
+              <img
+                src="https://icon-library.com/images/no-image-icon/no-image-icon-0.jpg"
+                alt="No Image"
+              />
+            )}
           </div>
           <div className="right">
             <form>
@@ -100,6 +109,7 @@ const NewHotel = () => {
                   />
                 </div>
               ))}
+
               <div className="formInput">
                 <label>Featured</label>
                 <select id="featured" onChange={handleChange}>
@@ -107,20 +117,23 @@ const NewHotel = () => {
                   <option value={true}>Yes</option>
                 </select>
               </div>
+
               <div className="selectRooms">
                 <label>Rooms</label>
                 <select id="rooms" multiple onChange={handleSelect}>
-                  {loading
-                    ? "loading"
-                    : data &&
-                    data.map((room) => (
-                      <option key={room._id} value={room._id}>
-                        {room.title}
-                      </option>
-                    ))}
+                  {roomLoading
+                    ? "loading..."
+                    : data?.map((room) => (
+                        <option key={room._id} value={room._id}>
+                          {room.title}
+                        </option>
+                      ))}
                 </select>
               </div>
-              <button onClick={handleClick}>Send</button>
+
+              <button onClick={handleClick} disabled={loading}>
+                {loading ? "Uploading..." : "Send"}
+              </button>
             </form>
           </div>
         </div>
