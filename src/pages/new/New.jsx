@@ -9,6 +9,7 @@ import useFetch from "../../hooks/useFetch";
 const New = ({ inputs, title }) => {
   const [file, setFile] = useState("");
   const [info, setInfo] = useState({});
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
 
   // ✅ Fetch users using useFetch
   const { data: users, loading, error } = useFetch(
@@ -27,6 +28,8 @@ const New = ({ inputs, title }) => {
 
   const handleClick = async (e) => {
     e.preventDefault();
+    setLoadingSubmit(true); // Start loading
+
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "upload");
@@ -49,8 +52,13 @@ const New = ({ inputs, title }) => {
         newUser,
         { withCredentials: true }
       );
+
+      alert("User registered successfully!");
     } catch (err) {
       console.log(err);
+      alert("Error registering user!");
+    } finally {
+      setLoadingSubmit(false); // Stop loading
     }
   };
 
@@ -70,7 +78,7 @@ const New = ({ inputs, title }) => {
                   ? URL.createObjectURL(file)
                   : "https://icon-library.com/images/no-image-icon/no-image-icon-0.jpg"
               }
-              alt=""
+              alt="Preview"
             />
           </div>
           <div className="right">
@@ -98,22 +106,10 @@ const New = ({ inputs, title }) => {
                   />
                 </div>
               ))}
-              <button onClick={handleClick}>Send</button>
+              <button onClick={handleClick} disabled={loadingSubmit}>
+                {loadingSubmit ? "Submitting..." : "Send"}
+              </button>
             </form>
-
-            {/* Users List */}
-            <h2>Users:</h2>
-            {loading ? (
-              <p>Loading users...</p>
-            ) : error ? (
-              <p>Error fetching users</p>
-            ) : (
-              <ul>
-                {users.map((user) => (
-                  <li key={user._id}>{user.username}</li>
-                ))}
-              </ul>
-            )}
           </div>
         </div>
       </div>
