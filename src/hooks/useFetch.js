@@ -10,7 +10,7 @@ const useFetch = (url) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("https://booking-app-api-production-8253.up.railway.app/api/users", {
+        const res = await axios.get(url, {
           withCredentials: true,
         });
         setData(res.data);

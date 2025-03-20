@@ -2,25 +2,18 @@ import "./new.scss";
 import Sidebar from "../../components/sidebar/Sidebar";
 import Navbar from "../../components/navbar/Navbar";
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
+import useFetch from "../../hooks/useFetch"; 
 
 const New = ({ inputs, title }) => {
   const [file, setFile] = useState("");
   const [info, setInfo] = useState({});
-  const [users, setUsers] = useState([]);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await axios.get("https://booking-app-api-production-8253.up.railway.app/api/users",{withCredentials: true} );
-        setUsers(res.data);
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    fetchUsers();
-  }, []);
+  // ✅ Fetch users using useFetch
+  const { data: users, loading, error } = useFetch(
+    "https://booking-app-api-production-8253.up.railway.app/api/users"
+  );
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -45,13 +38,16 @@ const New = ({ inputs, title }) => {
         img: url,
       };
 
-      await axios.post("https://booking-app-api-production-8253.up.railway.app/api/auth/register", newUser,{withCredentials: true});
+      await axios.post(
+        "https://booking-app-api-production-8253.up.railway.app/api/auth/register",
+        newUser,
+        { withCredentials: true }
+      );
     } catch (err) {
       console.log(err);
     }
   };
 
-  console.log(info);
   return (
     <div className="new">
       <Sidebar />
@@ -101,11 +97,17 @@ const New = ({ inputs, title }) => {
 
             {/* Users List */}
             <h2>Users:</h2>
-            <ul>
-              {users.map((user) => (
-                <li key={user._id}>{user.username}</li>
-              ))}
-            </ul>
+            {loading ? (
+              <p>Loading users...</p>
+            ) : error ? (
+              <p>Error fetching users</p>
+            ) : (
+              <ul>
+                {users.map((user) => (
+                  <li key={user._id}>{user.username}</li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </div>

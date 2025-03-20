@@ -13,7 +13,7 @@ const NewHotel = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const { data, loading: roomLoading, error } = useFetch("/rooms");
+  const { data, loading: roomLoading, error } = useFetch("https://booking-app-api-production-8253.up.railway.app/api/rooms");
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
