@@ -2,12 +2,25 @@ import "./new.scss";
 import Sidebar from "../../components/sidebar/Sidebar";
 import Navbar from "../../components/navbar/Navbar";
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 const New = ({ inputs, title }) => {
   const [file, setFile] = useState("");
   const [info, setInfo] = useState({});
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await axios.get("https://booking-app-api-production-8253.up.railway.app/api/users");
+        setUsers(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -18,6 +31,7 @@ const New = ({ inputs, title }) => {
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "upload");
+
     try {
       const uploadRes = await axios.post(
         "https://api.cloudinary.com/v1_1/djwgfsrvl/image/upload",
@@ -84,6 +98,14 @@ const New = ({ inputs, title }) => {
               ))}
               <button onClick={handleClick}>Send</button>
             </form>
+
+            {/* Users List */}
+            <h2>Users:</h2>
+            <ul>
+              {users.map((user) => (
+                <li key={user._id}>{user.username}</li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
