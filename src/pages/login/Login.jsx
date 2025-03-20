@@ -26,11 +26,11 @@ const Login = () => {
       const res = await axios.post(
         "https://booking-app-api-production-8253.up.railway.app/api/auth/login",
         credentials,
-        { withCredentials: true } 
+        { withCredentials: true }
       );
 
-      if (res.data.isAdmin) {
-        dispatch({ type: "LOGIN_SUCCESS", payload: res.data.details });
+      if (res.data?.isAdmin) {
+        dispatch({ type: "LOGIN_SUCCESS", payload: res.data.details || res.data });
 
         navigate("/");
       } else {

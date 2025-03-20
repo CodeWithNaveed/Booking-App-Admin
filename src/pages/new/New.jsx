@@ -12,7 +12,13 @@ const New = ({ inputs, title }) => {
 
   // ✅ Fetch users using useFetch
   const { data: users, loading, error } = useFetch(
-    "https://booking-app-api-production-8253.up.railway.app/api/users"
+    "https://booking-app-api-production-8253.up.railway.app/api/users",
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      withCredentials: true,
+    }
   );
 
   const handleChange = (e) => {

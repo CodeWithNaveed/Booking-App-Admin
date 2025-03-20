@@ -12,7 +12,9 @@ const NewRoom = () => {
   const [rooms, setRooms] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { data, loading: hotelLoading, error } = useFetch("https://booking-app-api-production-8253.up.railway.app/api/hotels");
+  const { data, loading: hotelLoading } = useFetch(
+    "https://booking-app-api-production-8253.up.railway.app/api/hotels"
+  );
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -26,17 +28,16 @@ const NewRoom = () => {
       return;
     }
 
-    const roomNumbers = rooms.split(",").map((room) => {
-      const trimmedRoom = room.trim();
-      if (!trimmedRoom.match(/^\d+$/)) {
-        alert("Room numbers must be valid numbers separated by commas.");
-        return null;
-      }
-      return { number: trimmedRoom };
-    }).filter(Boolean);
+    const roomNumbers = rooms
+      .split(",")
+      .map((room) => {
+        const trimmedRoom = room.trim();
+        return /^\d+$/.test(trimmedRoom) ? { number: trimmedRoom } : null;
+      })
+      .filter(Boolean);
 
     if (roomNumbers.length === 0) {
-      alert("Please enter at least one valid room number.");
+      alert("Please enter valid room numbers.");
       return;
     }
 
@@ -47,6 +48,7 @@ const NewRoom = () => {
         { ...info, roomNumbers }
       );
       alert("Room added successfully!");
+      setRooms(""); // Clear input after successful submission
     } catch (err) {
       alert(err.response?.data?.message || "Something went wrong");
     } finally {
@@ -79,13 +81,15 @@ const NewRoom = () => {
               <div className="formInput">
                 <label>Rooms</label>
                 <textarea
+                  value={rooms}
                   onChange={(e) => setRooms(e.target.value)}
                   placeholder="Enter room numbers separated by commas (e.g., 101, 102, 103)."
                 />
               </div>
               <div className="formInput">
                 <label>Choose a hotel</label>
-                <select id="hotelId" onChange={(e) => setHotelId(e.target.value)}>
+                <select value={hotelId} onChange={(e) => setHotelId(e.target.value)}>
+                  <option value="">Select a hotel</option>
                   {hotelLoading ? (
                     <option>Loading...</option>
                   ) : (
