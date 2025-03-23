@@ -4,10 +4,23 @@ import Navbar from "../../components/navbar/Navbar";
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
 import { useState } from "react";
 import axios from "axios";
+import useFetch from "../../hooks/useFetch"; 
 
 const New = ({ inputs, title }) => {
   const [file, setFile] = useState("");
   const [info, setInfo] = useState({});
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+
+  // ✅ Fetch users using useFetch
+  const { data: users, loading, error } = useFetch(
+    "https://booking-app-api-production-8253.up.railway.app/api/users",
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      withCredentials: true,
+    }
+  );
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -15,9 +28,12 @@ const New = ({ inputs, title }) => {
 
   const handleClick = async (e) => {
     e.preventDefault();
+    setLoadingSubmit(true); // Start loading
+
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "upload");
+
     try {
       const uploadRes = await axios.post(
         "https://api.cloudinary.com/v1_1/djwgfsrvl/image/upload",
@@ -31,13 +47,21 @@ const New = ({ inputs, title }) => {
         img: url,
       };
 
-      await axios.post("https://booking-app-api-production-8253.up.railway.app/api/auth/register", newUser);
+      await axios.post(
+        "https://booking-app-api-production-8253.up.railway.app/api/auth/register",
+        newUser,
+        { withCredentials: true }
+      );
+
+      alert("User registered successfully!");
     } catch (err) {
       console.log(err);
+      alert("Error registering user!");
+    } finally {
+      setLoadingSubmit(false); // Stop loading
     }
   };
 
-  console.log(info);
   return (
     <div className="new">
       <Sidebar />
@@ -54,7 +78,7 @@ const New = ({ inputs, title }) => {
                   ? URL.createObjectURL(file)
                   : "https://icon-library.com/images/no-image-icon/no-image-icon-0.jpg"
               }
-              alt=""
+              alt="Preview"
             />
           </div>
           <div className="right">
@@ -82,7 +106,9 @@ const New = ({ inputs, title }) => {
                   />
                 </div>
               ))}
-              <button onClick={handleClick}>Send</button>
+              <button onClick={handleClick} disabled={loadingSubmit}>
+                {loadingSubmit ? "Submitting..." : "Send"}
+              </button>
             </form>
           </div>
         </div>

@@ -2,7 +2,6 @@ import axios from "axios";
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
-// import { AuthContext } from "../../context/AuthContext";
 import "./login.scss";
 
 const Login = () => {
@@ -22,10 +21,16 @@ const Login = () => {
   const handleClick = async (e) => {
     e.preventDefault();
     dispatch({ type: "LOGIN_START" });
+
     try {
-      const res = await axios.post("https://booking-app-api-production-8253.up.railway.app/api/auth/login", credentials);
-      if (res.data.isAdmin) {
-        dispatch({ type: "LOGIN_SUCCESS", payload: res.data.details });
+      const res = await axios.post(
+        "https://booking-app-api-production-8253.up.railway.app/api/auth/login",
+        credentials,
+        { withCredentials: true }
+      );
+
+      if (res.data?.isAdmin) {
+        dispatch({ type: "LOGIN_SUCCESS", payload: res.data.details || res.data });
 
         navigate("/");
       } else {
