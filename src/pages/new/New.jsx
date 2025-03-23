@@ -28,37 +28,48 @@ const New = ({ inputs, title }) => {
 
   const handleClick = async (e) => {
     e.preventDefault();
-    setLoadingSubmit(true); // Start loading
-
+    setLoadingSubmit(true);
+  
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "upload");
-
+  
     try {
+      // Check if user already exists
+      const existingUser = await axios.get(
+        `https://booking-app-api-production-8253.up.railway.app/api/users?email=${info.email}`,
+        { withCredentials: true }
+      );
+  
+      if (existingUser.data.length > 0) {
+        alert("User already exists!");
+        setLoadingSubmit(false);
+        return;
+      }
+  
+      // Upload image
       const uploadRes = await axios.post(
         "https://api.cloudinary.com/v1_1/djwgfsrvl/image/upload",
         data
       );
-
+  
       const { url } = uploadRes.data;
-
-      const newUser = {
-        ...info,
-        img: url,
-      };
-
+  
+      // Register new user
+      const newUser = { ...info, img: url };
+  
       await axios.post(
         "https://booking-app-api-production-8253.up.railway.app/api/auth/register",
         newUser,
         { withCredentials: true }
       );
-
+  
       alert("User registered successfully!");
     } catch (err) {
       console.log(err);
       alert("Error registering user!");
     } finally {
-      setLoadingSubmit(false); // Stop loading
+      setLoadingSubmit(false);
     }
   };
 
