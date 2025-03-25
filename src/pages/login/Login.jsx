@@ -24,6 +24,7 @@ const Login = () => {
     try {
       const res = await axios.post(
         "https://booking-app-api-production-8253.up.railway.app/api/auth/login",
+        credentials,
         { withCredentials: true }
       );
 
