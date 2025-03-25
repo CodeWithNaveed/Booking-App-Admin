@@ -1,6 +1,7 @@
 import "./newRoom.scss";
 import Sidebar from "../../components/sidebar/Sidebar";
 import Navbar from "../../components/navbar/Navbar";
+import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
 import { useState } from "react";
 import { roomInputs } from "../../formSource";
 import useFetch from "../../hooks/useFetch";
@@ -8,13 +9,10 @@ import axios from "axios";
 
 const NewRoom = () => {
   const [info, setInfo] = useState({});
-  const [hotelId, setHotelId] = useState("");
-  const [rooms, setRooms] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [hotelId, setHotelId] = useState(undefined);
+  const [rooms, setRooms] = useState([]);
 
-  const { data, loading: hotelLoading } = useFetch(
-    "https://booking-app-api-production-8253.up.railway.app/api/hotels"
-  );
+  const { data, loading, error } = useFetch("https://booking-app-api-production-8253.up.railway.app/api/hotels");
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -22,47 +20,15 @@ const NewRoom = () => {
 
   const handleClick = async (e) => {
     e.preventDefault();
-
-    if (!hotelId || !rooms.trim()) {
-      alert("❌ Please fill all fields.");
-      return;
-    }
-
-    const roomNumbers = rooms
-      .split(",")
-      .map((room) => {
-        const trimmedRoom = room.trim();
-        return /^\d+$/.test(trimmedRoom) ? { number: trimmedRoom } : null;
-      })
-      .filter(Boolean);
-
-    if (roomNumbers.length === 0) {
-      alert("❌ Please enter valid room numbers.");
-      return;
-    }
-
-    setLoading(true);
+    const roomNumbers = rooms.split(",").map((room) => ({ number: room }));
     try {
-      // 🛠 Token uthao (authentication ke liye)
-      const token = localStorage.getItem("token");
-
-      await axios.post(
-        `https://booking-app-api-production-8253.up.railway.app/api/rooms/${hotelId}`,
-        { ...info, roomNumbers },
-        {
-          headers: { Authorization: `Bearer ${token}` }, // 👈 Token bhejna zaroori hai
-        }
-      );
-
-      alert("✅ Room added successfully!");
-      setRooms(""); // Clear input after success
+      await axios.post(`https://booking-app-api-production-8253.up.railway.app/api/rooms/${hotelId}`, { ...info, roomNumbers });
     } catch (err) {
-      alert(err.response?.data?.message || "❌ Unauthorized! Only admins can add rooms.");
-    } finally {
-      setLoading(false);
+      console.log(err);
     }
   };
 
+  console.log(info)
   return (
     <div className="new">
       <Sidebar />
@@ -88,29 +54,25 @@ const NewRoom = () => {
               <div className="formInput">
                 <label>Rooms</label>
                 <textarea
-                  value={rooms}
                   onChange={(e) => setRooms(e.target.value)}
-                  placeholder="Enter room numbers separated by commas (e.g., 101, 102, 103)."
+                  placeholder="give comma between room numbers."
                 />
               </div>
               <div className="formInput">
                 <label>Choose a hotel</label>
-                <select value={hotelId} onChange={(e) => setHotelId(e.target.value)}>
-                  <option value="">Select a hotel</option>
-                  {hotelLoading ? (
-                    <option>Loading...</option>
-                  ) : (
-                    data?.map((hotel) => (
-                      <option key={hotel._id} value={hotel._id}>
-                        {hotel.name}
-                      </option>
-                    ))
-                  )}
+                <select
+                  id="hotelId"
+                  onChange={(e) => setHotelId(e.target.value)}
+                >
+                  {loading
+                    ? "loading"
+                    : data &&
+                      data.map((hotel) => (
+                        <option key={hotel._id} value={hotel._id}>{hotel.name}</option>
+                      ))}
                 </select>
               </div>
-              <button onClick={handleClick} disabled={loading}>
-                {loading ? "Submitting..." : "Send"}
-              </button>
+              <button onClick={handleClick}>Send</button>
             </form>
           </div>
         </div>

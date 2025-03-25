@@ -8,94 +8,71 @@ import useFetch from "../../hooks/useFetch";
 import axios from "axios";
 
 const NewHotel = () => {
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState("");
   const [info, setInfo] = useState({});
   const [rooms, setRooms] = useState([]);
-  const [loading, setLoading] = useState(false);
 
-  const { data, loading: roomLoading } = useFetch(
-    "https://booking-app-api-production-8253.up.railway.app/api/rooms"
-  );
+  const { data, loading, error } = useFetch("https://booking-app-api-production-8253.up.railway.app/api/rooms");
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
   const handleSelect = (e) => {
-    const value = Array.from(e.target.selectedOptions, (option) => option.value);
+    const value = Array.from(
+      e.target.selectedOptions,
+      (option) => option.value
+    );
     setRooms(value);
   };
+  
+  console.log(files)
 
   const handleClick = async (e) => {
     e.preventDefault();
-
-    if (!files.length) {
-      alert("❌ Please select at least one image!");
-      return;
-    }
-
-    setLoading(true);
     try {
       const list = await Promise.all(
-        files.map(async (file) => {
+        Object.values(files).map(async (file) => {
           const data = new FormData();
           data.append("file", file);
           data.append("upload_preset", "upload");
-
           const uploadRes = await axios.post(
             "https://api.cloudinary.com/v1_1/djwgfsrvl/image/upload",
             data
           );
 
-          return uploadRes.data.url;
+          const { url } = uploadRes.data;
+          return url;
         })
       );
 
-      const newHotel = { ...info, rooms, photos: list };
+      const newhotel = {
+        ...info,
+        rooms,
+        photos: list,
+      };
 
-      // 🛠 Token uthao (authentication ke liye)
-      const token = localStorage.getItem("token");
-
-      await axios.post(
-        "https://booking-app-api-production-8253.up.railway.app/api/hotels",
-        newHotel,
-        {
-          headers: { Authorization: `Bearer ${token}` }, // 👈 Token bhejna zaroori hai
-        }
-      );
-
-      alert("✅ Hotel added successfully!");
-      setInfo({});
-      setFiles([]);
-    } catch (err) {
-      alert(err.response?.data?.message || "❌ Unauthorized! Only admins can add hotels.");
-    } finally {
-      setLoading(false);
-    }
+      await axios.post("https://booking-app-api-production-8253.up.railway.app/api/hotels", newhotel);
+    } catch (err) {console.log(err)}
   };
-
   return (
     <div className="new">
       <Sidebar />
       <div className="newContainer">
         <Navbar />
         <div className="top">
-          <h1>Add New Hotel</h1>
+          <h1>Add New Product</h1>
         </div>
         <div className="bottom">
           <div className="left">
-            {files.length > 0 ? (
-              <div className="imagePreview">
-                {files.map((file, index) => (
-                  <img key={index} src={URL.createObjectURL(file)} alt={`preview ${index}`} />
-                ))}
-              </div>
-            ) : (
-              <img
-                src="https://icon-library.com/images/no-image-icon/no-image-icon-0.jpg"
-                alt="No Image"
-              />
-            )}
+            <img
+              src={
+                files
+                  ? URL.createObjectURL(files[0])
+                  : "https://icon-library.com/images/no-image-icon/no-image-icon-0.jpg"
+              }
+              alt=""
+            />
           </div>
           <div className="right">
             <form>
@@ -107,7 +84,7 @@ const NewHotel = () => {
                   type="file"
                   id="file"
                   multiple
-                  onChange={(e) => setFiles(Array.from(e.target.files))}
+                  onChange={(e) => setFiles(e.target.files)}
                   style={{ display: "none" }}
                 />
               </div>
@@ -120,35 +97,30 @@ const NewHotel = () => {
                     onChange={handleChange}
                     type={input.type}
                     placeholder={input.placeholder}
-                    value={info[input.id] || ""}
                   />
                 </div>
               ))}
-
               <div className="formInput">
                 <label>Featured</label>
-                <select id="featured" onChange={(e) => setInfo({ ...info, featured: e.target.value === "true" })}>
+                <select id="featured" onChange={handleChange}>
                   <option value={false}>No</option>
                   <option value={true}>Yes</option>
                 </select>
               </div>
-
               <div className="selectRooms">
                 <label>Rooms</label>
                 <select id="rooms" multiple onChange={handleSelect}>
-                  {roomLoading
-                    ? "loading..."
-                    : data?.map((room) => (
+                  {loading
+                    ? "loading"
+                    : data &&
+                      data.map((room) => (
                         <option key={room._id} value={room._id}>
                           {room.title}
                         </option>
                       ))}
                 </select>
               </div>
-
-              <button onClick={handleClick} disabled={loading}>
-                {loading ? "Uploading..." : "Send"}
-              </button>
+              <button onClick={handleClick}>Send</button>
             </form>
           </div>
         </div>
