@@ -12,17 +12,11 @@ const New = ({ inputs, title }) => {
   const [loadingSubmit, setLoadingSubmit] = useState(false);
 
 
-  // const token = localStorage.getItem("token");
-  // console.log("Stored Token:", token); 
 
 
-  // ✅ Fetch users using useFetch
-  // const { data: users, loading, error } = useFetch(
-  //   "https://booking-app-api-production-8253.up.railway.app/api/users"
-  // );
-
-  // console.log("Users Data:", users);
-  // console.log("Error:", error);
+  const { data: users, loading, error } = useFetch(
+    "https://booking-app-api-production-8253.up.railway.app/api/users"
+  );
 
 
   const handleChange = (e) => {
@@ -31,7 +25,7 @@ const New = ({ inputs, title }) => {
 
   const handleClick = async (e) => {
     e.preventDefault();
-    setLoadingSubmit(true); // Start loading
+    setLoadingSubmit(true); 
 
     const data = new FormData();
     data.append("file", file);
@@ -59,9 +53,9 @@ const New = ({ inputs, title }) => {
       alert("User registered successfully!");
     } catch (err) {
       console.log(err);
-      alert("Error registering user!");
+      alert("Something went wrong! Please try again.");
     } finally {
-      setLoadingSubmit(false); // Stop loading
+      setLoadingSubmit(false);
     }
   };
 

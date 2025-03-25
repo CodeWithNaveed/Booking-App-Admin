@@ -10,13 +10,9 @@ const useFetch = (url) => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // const token = localStorage.getItem("token");
-                // console.log("Stored Token Before Request:", token); 
-
                 console.log("API Request URL:", url);
                 const res = await axios.get(url);
 
-                console.log("API Response Data:", res.data);
                 setData(res.data);
             } catch (err) {
                 setError(err);
