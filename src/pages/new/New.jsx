@@ -4,7 +4,7 @@ import Navbar from "../../components/navbar/Navbar";
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
 import { useState } from "react";
 import axios from "axios";
-// import useFetch from "../../hooks/useFetch";
+import useFetch from "../../hooks/useFetch";
 
 const New = ({ inputs, title }) => {
   const [file, setFile] = useState("");
