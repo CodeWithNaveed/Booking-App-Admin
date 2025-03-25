@@ -4,23 +4,26 @@ import Navbar from "../../components/navbar/Navbar";
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
 import { useState } from "react";
 import axios from "axios";
-import useFetch from "../../hooks/useFetch"; 
+// import useFetch from "../../hooks/useFetch";
 
 const New = ({ inputs, title }) => {
   const [file, setFile] = useState("");
   const [info, setInfo] = useState({});
   const [loadingSubmit, setLoadingSubmit] = useState(false);
 
+
+  // const token = localStorage.getItem("token");
+  // console.log("Stored Token:", token); 
+
+
   // ✅ Fetch users using useFetch
-  const { data: users, loading, error } = useFetch(
-    "https://booking-app-api-production-8253.up.railway.app/api/users",
-    {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-      withCredentials: true,
-    }
-  );
+  // const { data: users, loading, error } = useFetch(
+  //   "https://booking-app-api-production-8253.up.railway.app/api/users"
+  // );
+
+  // console.log("Users Data:", users);
+  // console.log("Error:", error);
+
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -28,48 +31,37 @@ const New = ({ inputs, title }) => {
 
   const handleClick = async (e) => {
     e.preventDefault();
-    setLoadingSubmit(true);
-  
+    setLoadingSubmit(true); // Start loading
+
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "upload");
-  
+
     try {
-      // Check if user already exists
-      const existingUser = await axios.get(
-        `https://booking-app-api-production-8253.up.railway.app/api/users?email=${info.email}`,
-        { withCredentials: true }
-      );
-  
-      if (existingUser.data.length > 0) {
-        alert("User already exists!");
-        setLoadingSubmit(false);
-        return;
-      }
-  
-      // Upload image
       const uploadRes = await axios.post(
         "https://api.cloudinary.com/v1_1/djwgfsrvl/image/upload",
         data
       );
-  
+
       const { url } = uploadRes.data;
-  
-      // Register new user
-      const newUser = { ...info, img: url };
-  
+
+      const newUser = {
+        ...info,
+        img: url,
+      };
+
       await axios.post(
         "https://booking-app-api-production-8253.up.railway.app/api/auth/register",
         newUser,
         { withCredentials: true }
       );
-  
+
       alert("User registered successfully!");
     } catch (err) {
       console.log(err);
       alert("Error registering user!");
     } finally {
-      setLoadingSubmit(false);
+      setLoadingSubmit(false); // Stop loading
     }
   };
 

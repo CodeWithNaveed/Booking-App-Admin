@@ -6,12 +6,11 @@ import "./login.scss";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
-    username: undefined,
-    password: undefined,
+    username: "",
+    password: "",
   });
 
   const { loading, error, dispatch } = useContext(AuthContext);
-
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -29,18 +28,23 @@ const Login = () => {
         { withCredentials: true }
       );
 
-      if (res.data?.isAdmin) {
-        dispatch({ type: "LOGIN_SUCCESS", payload: res.data.details || res.data });
+      console.log("Full API Response:", res);
 
+      if (res.data.isAdmin) {
+        dispatch({ type: "LOGIN_SUCCESS", payload: res.data.details || res.data });
         navigate("/");
-      } else {
+      }
+      else {
+        console.log("User is not admin:", res.data);
         dispatch({
           type: "LOGIN_FAILURE",
-          payload: { message: "You are not allowed!" },
+          payload: { message: "You are not an admin user and cannot log in" },
         });
       }
-    } catch (err) {
-      dispatch({ type: "LOGIN_FAILURE", payload: err.response.data });
+    }
+    catch (err) {
+      console.log("Login Error:", err);
+      dispatch({ type: "LOGIN_FAILURE", payload: err.response?.data || { message: "Unknown error" } });
     }
   };
 
@@ -49,22 +53,22 @@ const Login = () => {
       <div className="lContainer">
         <input
           type="text"
-          placeholder="username"
+          placeholder="Username"
           id="username"
           onChange={handleChange}
           className="lInput"
         />
         <input
           type="password"
-          placeholder="password"
+          placeholder="Password"
           id="password"
           onChange={handleChange}
           className="lInput"
         />
         <button disabled={loading} onClick={handleClick} className="lButton">
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
-        {error && <span>{error.message}</span>}
+        {error && <span className="error">{error.message}</span>}
       </div>
     </div>
   );

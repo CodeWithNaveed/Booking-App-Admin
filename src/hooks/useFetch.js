@@ -1,21 +1,22 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
+import axios from "axios";
 
 const useFetch = (url) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const res = await axios.get(url, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                    withCredentials: true,
-                });
+                // const token = localStorage.getItem("token");
+                // console.log("Stored Token Before Request:", token); 
+
+                console.log("API Request URL:", url);
+                const res = await axios.get(url);
+
+                console.log("API Response Data:", res.data);
                 setData(res.data);
             } catch (err) {
                 setError(err);
@@ -26,18 +27,7 @@ const useFetch = (url) => {
         fetchData();
     }, [url]);
 
-    const reFetch = async () => {
-        setLoading(true);
-        try {
-            const res = await axios.get(url);
-            setData(res.data);
-        } catch (err) {
-            setError(err);
-        }
-        setLoading(false);
-    };
-
-    return { data, loading, error, reFetch };
+    return { data, loading, error };
 };
 
 export default useFetch;
