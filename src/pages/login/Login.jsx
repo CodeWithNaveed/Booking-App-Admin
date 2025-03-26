@@ -148,7 +148,9 @@ const Login = () => {
     const accessToken = getCookie('access_token');
     if (accessToken) {
       // If access_token exists in cookies, store it in localStorage
+      console.log("Access token found in cookies:", accessToken);
       localStorage.setItem('token', accessToken);
+      console.log("Token stored in localStorage", localStorage.getItem('token'));
       
       // Dispatch login success (you might want to fetch user data here)
       dispatch({ type: "LOGIN_SUCCESS", payload: { token: accessToken } });
