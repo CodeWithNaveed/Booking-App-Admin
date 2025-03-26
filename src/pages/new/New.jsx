@@ -4,69 +4,67 @@ import Navbar from "../../components/navbar/Navbar";
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
 import { useState } from "react";
 import useFetch from "../../hooks/useFetch";
-import axios from "axios";
+import api from "../../api";
 import { useSnackbar } from 'notistack';
-
+import axios from "axios";
 
 const New = ({ inputs, title }) => {
-  console.log("New component rendering"); // Add this line
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [file, setFile] = useState("");
+  const [file, setFile] = useState(null);
   const [info, setInfo] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
 
-  const { data, loading, error } = useFetch("https://booking-app-api-production-8253.up.railway.app/api/users");
-
-  console.log("Hook data:", { data, loading, error }); // Add this line
+  // Using your api instance for fetching users
+  const { data, loading, error } = useFetch("/users");
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
-  const { enqueueSnackbar } = useSnackbar();
-
   const handleClick = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      const data = new FormData();
-      data.append("file", file);
-      data.append("upload_preset", "upload");
+    
+    if (!file) {
+      enqueueSnackbar("Please select an image", { variant: 'error' });
+      return;
+    }
 
+    setIsSubmitting(true);
+
+    try {
+      // Step 1: Upload image to Cloudinary (using axios directly)
+      const imageData = new FormData();
+      imageData.append("file", file);
+      imageData.append("upload_preset", "upload");
+      
       const uploadRes = await axios.post(
         "https://api.cloudinary.com/v1_1/djwgfsrvl/image/upload",
-        data
+        imageData
       );
 
-      const { url } = uploadRes.data;
-
+      // Step 2: Create user with your API (using api instance)
       const newUser = {
         ...info,
-        img: url,
+        img: uploadRes.data.secure_url, // Using secure_url from Cloudinary
       };
 
-      const response = await axios.post(
-        "https://booking-app-api-production-8253.up.railway.app/api/auth/register",
-        newUser,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        }
-      );
+      await api.post("/auth/register", newUser);
 
-      console.log("User created successfully:", response.data);
-      enqueueSnackbar('User created successfully!', { variant: 'success' });
+      enqueueSnackbar("User created successfully!", { variant: 'success' });
+      // Reset form
+      setFile(null);
+      setInfo({});
     } catch (err) {
-      console.error("Error creating user:", err.response?.data || err.message);
-      enqueueSnackbar('Error creating user', { variant: 'error' });
+      console.error("Error:", err);
+      const errorMessage = err.response?.data?.message || 
+                         err.message || 
+                         "Failed to create user";
+      enqueueSnackbar(errorMessage, { variant: 'error' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-
-  console.log(info);
   return (
     <div className="new">
       <Sidebar />
@@ -83,7 +81,7 @@ const New = ({ inputs, title }) => {
                   ? URL.createObjectURL(file)
                   : "https://icon-library.com/images/no-image-icon/no-image-icon-0.jpg"
               }
-              alt=""
+              alt="Preview"
             />
           </div>
           <div className="right">
@@ -95,6 +93,7 @@ const New = ({ inputs, title }) => {
                 <input
                   type="file"
                   id="file"
+                  accept="image/*"
                   onChange={(e) => setFile(e.target.files[0])}
                   style={{ display: "none" }}
                 />
@@ -108,10 +107,18 @@ const New = ({ inputs, title }) => {
                     type={input.type}
                     placeholder={input.placeholder}
                     id={input.id}
+                    value={info[input.id] || ''}
                   />
                 </div>
               ))}
-              <button onClick={handleClick}>Send</button>
+              
+              <button 
+                onClick={handleClick} 
+                disabled={isSubmitting}
+                className={isSubmitting ? "loading" : ""}
+              >
+                {isSubmitting ? "Creating..." : "Create User"}
+              </button>
             </form>
           </div>
         </div>

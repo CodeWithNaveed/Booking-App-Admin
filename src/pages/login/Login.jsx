@@ -1,7 +1,8 @@
-import axios from "axios";
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import api from "../../api";
+import { useSnackbar } from 'notistack';
 import "./login.scss";
 
 const Login = () => {
@@ -10,8 +11,9 @@ const Login = () => {
     password: "",
   });
 
-  const { loading, error, dispatch } = useContext(AuthContext);
+  const { loading, dispatch } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleChange = (e) => {
     setCredentials((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -19,71 +21,85 @@ const Login = () => {
 
   const handleClick = async (e) => {
     e.preventDefault();
+    
+    // Basic validation
+    if (!credentials.username.trim() || !credentials.password.trim()) {
+      enqueueSnackbar("Please fill all fields", { variant: 'error' });
+      return;
+    }
+
     dispatch({ type: "LOGIN_START" });
 
     try {
-      const res = await axios.post(
-        "https://booking-app-api-production-8253.up.railway.app/api/auth/login",
-        credentials,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const res = await api.post("/auth/login", credentials);
 
-      if (res.data.isAdmin) {
-        // Get token from cookies
-        const getCookie = (name) => {
-          const value = `; ${document.cookie}`;
-          const parts = value.split(`; ${name}=`);
-          if (parts.length === 2) return parts.pop().split(';').shift();
-        };
-        
-        const token = getCookie('access_token');
-        if (token) {
-          localStorage.setItem('token', token);
-        }
-
-        dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
-        navigate("/");
-      } else {
-        dispatch({
-          type: "LOGIN_FAILURE",
-          payload: { message: "You are not authorized as admin" },
-        });
+      if (!res.data.isAdmin) {
+        throw new Error("You are not authorized as admin");
       }
+
+      // Successful login
+      dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
+      enqueueSnackbar("Login successful!", { variant: 'success' });
+      
+      // Store token if available
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token);
+      }
+
+      navigate("/");
     } catch (err) {
-      console.error("Login Error:", err);
+      console.error("Login error:", err);
+      
+      let errorMessage = "Login failed";
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
       dispatch({
         type: "LOGIN_FAILURE",
-        payload: err.response?.data || { message: "Login failed" },
+        payload: { message: errorMessage },
       });
+
+      enqueueSnackbar(errorMessage, { variant: 'error' });
     }
   };
 
   return (
     <div className="login">
       <div className="lContainer">
+        <h2>Admin Login</h2>
         <input
           type="text"
           placeholder="Username"
           id="username"
           onChange={handleChange}
+          value={credentials.username}
           className="lInput"
+          autoComplete="username"
         />
         <input
           type="password"
           placeholder="Password"
           id="password"
           onChange={handleChange}
+          value={credentials.password}
           className="lInput"
+          autoComplete="current-password"
         />
-        <button disabled={loading} onClick={handleClick} className="lButton">
-          {loading ? "Logging in..." : "Login"}
+        <button 
+          disabled={loading || !credentials.username || !credentials.password}
+          onClick={handleClick} 
+          className="lButton"
+        >
+          {loading ? (
+            <>
+              <span className="spinner"></span>
+              Logging in...
+            </>
+          ) : "Login"}
         </button>
-        {error && <span className="error">{error.message}</span>}
       </div>
     </div>
   );

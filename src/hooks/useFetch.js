@@ -1,7 +1,8 @@
+// hooks/useFetch.js
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api"; // Import your instance
 
-const useFetch = (url) => {
+const useFetch = (endpoint) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
@@ -10,12 +11,7 @@ const useFetch = (url) => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                console.log("API Request URL:", url);
-                const res = await axios.get(url, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}` // or your auth token
-                    }
-                });
+                const res = await api.get(endpoint); // Use your instance
                 setData(res.data);
             } catch (err) {
                 setError(err);
@@ -24,7 +20,7 @@ const useFetch = (url) => {
         };
 
         fetchData();
-    }, [url]);
+    }, [endpoint]);
 
     return { data, loading, error };
 };

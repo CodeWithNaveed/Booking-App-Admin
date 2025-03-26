@@ -1,18 +1,21 @@
 import "./newRoom.scss";
 import Sidebar from "../../components/sidebar/Sidebar";
 import Navbar from "../../components/navbar/Navbar";
-import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
 import { useState } from "react";
 import { roomInputs } from "../../formSource";
 import useFetch from "../../hooks/useFetch";
-import axios from "axios";
+import api from "../../api";
+import { useSnackbar } from 'notistack';
 
 const NewRoom = () => {
   const [info, setInfo] = useState({});
-  const [hotelId, setHotelId] = useState(undefined);
-  const [rooms, setRooms] = useState([]);
+  const [hotelId, setHotelId] = useState("");
+  const [rooms, setRooms] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
 
-  const { data, loading, error } = useFetch("https://booking-app-api-production-8253.up.railway.app/api/hotels");
+  // Using api instance with relative path
+  const { data, loading } = useFetch("/hotels");
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -20,15 +23,44 @@ const NewRoom = () => {
 
   const handleClick = async (e) => {
     e.preventDefault();
-    const roomNumbers = rooms.split(",").map((room) => ({ number: room }));
+    
+    if (!hotelId) {
+      enqueueSnackbar("Please select a hotel", { variant: 'error' });
+      return;
+    }
+
+    if (!rooms.trim()) {
+      enqueueSnackbar("Please enter room numbers", { variant: 'error' });
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
-      await axios.post(`https://booking-app-api-production-8253.up.railway.app/api/rooms/${hotelId}`, { ...info, roomNumbers });
+      const roomNumbers = rooms.split(",")
+        .map(room => room.trim())
+        .filter(room => room !== "")
+        .map(room => ({ number: room }));
+
+      await api.post(`/rooms/${hotelId}`, { 
+        ...info, 
+        roomNumbers 
+      });
+
+      enqueueSnackbar("Room created successfully!", { variant: 'success' });
+      // Reset form
+      setInfo({});
+      setRooms("");
+      setHotelId("");
     } catch (err) {
-      console.log(err);
+      console.error("Error creating room:", err);
+      const errorMessage = err.response?.data?.message || "Failed to create room";
+      enqueueSnackbar(errorMessage, { variant: 'error' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  console.log(info)
   return (
     <div className="new">
       <Sidebar />
@@ -48,31 +80,44 @@ const NewRoom = () => {
                     type={input.type}
                     placeholder={input.placeholder}
                     onChange={handleChange}
+                    value={info[input.id] || ''}
                   />
                 </div>
               ))}
+
               <div className="formInput">
                 <label>Rooms</label>
                 <textarea
+                  value={rooms}
                   onChange={(e) => setRooms(e.target.value)}
-                  placeholder="give comma between room numbers."
+                  placeholder="Enter comma separated room numbers (e.g., 101, 102, 103)"
                 />
               </div>
+
               <div className="formInput">
                 <label>Choose a hotel</label>
                 <select
                   id="hotelId"
                   onChange={(e) => setHotelId(e.target.value)}
+                  value={hotelId}
                 >
+                  <option value="">Select a hotel</option>
                   {loading
-                    ? "loading"
-                    : data &&
-                      data.map((hotel) => (
-                        <option key={hotel._id} value={hotel._id}>{hotel.name}</option>
+                    ? <option>Loading hotels...</option>
+                    : data?.map((hotel) => (
+                        <option key={hotel._id} value={hotel._id}>
+                          {hotel.name}
+                        </option>
                       ))}
                 </select>
               </div>
-              <button onClick={handleClick}>Send</button>
+
+              <button 
+                onClick={handleClick}
+                disabled={isSubmitting || !hotelId || !rooms.trim()}
+              >
+                {isSubmitting ? "Creating..." : "Create Room"}
+              </button>
             </form>
           </div>
         </div>
