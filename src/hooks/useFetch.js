@@ -7,17 +7,17 @@ const useFetch = (url) => {
     const [error, setError] = useState(false);
 
     useEffect(() => {
-        console.log("useFetch hook mounted with URL:", url); // Add this line
-        
         const fetchData = async () => {
             setLoading(true);
             try {
                 console.log("API Request URL:", url);
-                const res = await axios.get(url);
-                console.log("API Response:", res.data); // Add this line
+                const res = await axios.get(url, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}` // or your auth token
+                    }
+                });
                 setData(res.data);
             } catch (err) {
-                console.error("API Error:", err); // Add this line
                 setError(err);
             }
             setLoading(false);

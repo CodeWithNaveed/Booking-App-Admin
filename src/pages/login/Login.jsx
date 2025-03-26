@@ -25,26 +25,41 @@ const Login = () => {
       const res = await axios.post(
         "https://booking-app-api-production-8253.up.railway.app/api/auth/login",
         credentials,
-        { withCredentials: true }
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
 
-      // console.log("Full API Response:", res);
-
       if (res.data.isAdmin) {
-        dispatch({ type: "LOGIN_SUCCESS", payload: res.data.details || res.data });
+        // Get token from cookies
+        const getCookie = (name) => {
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) return parts.pop().split(';').shift();
+        };
+        
+        const token = getCookie('access_token');
+        if (token) {
+          localStorage.setItem('token', token);
+        }
+
+        dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
         navigate("/");
-      }
-      else {
-        console.log("User is not admin:", res.data);
+      } else {
         dispatch({
           type: "LOGIN_FAILURE",
-          payload: { message: "You are not an admin user and cannot log in" },
+          payload: { message: "You are not authorized as admin" },
         });
       }
-    }
-    catch (err) {
-      console.log("Login Error:", err);
-      dispatch({ type: "LOGIN_FAILURE", payload: err.response?.data || { message: "Unknown error" } });
+    } catch (err) {
+      console.error("Login Error:", err);
+      dispatch({
+        type: "LOGIN_FAILURE",
+        payload: err.response?.data || { message: "Login failed" },
+      });
     }
   };
 

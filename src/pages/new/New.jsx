@@ -5,9 +5,12 @@ import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUpload
 import { useState } from "react";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
+import { useSnackbar } from 'notistack';
+
 
 const New = ({ inputs, title }) => {
   console.log("New component rendering"); // Add this line
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [file, setFile] = useState("");
   const [info, setInfo] = useState({});
@@ -20,12 +23,16 @@ const New = ({ inputs, title }) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
+  const { enqueueSnackbar } = useSnackbar();
+
   const handleClick = async (e) => {
     e.preventDefault();
-    const data = new FormData();
-    data.append("file", file);
-    data.append("upload_preset", "upload");
+    setIsSubmitting(true);
     try {
+      const data = new FormData();
+      data.append("file", file);
+      data.append("upload_preset", "upload");
+
       const uploadRes = await axios.post(
         "https://api.cloudinary.com/v1_1/djwgfsrvl/image/upload",
         data
@@ -38,11 +45,26 @@ const New = ({ inputs, title }) => {
         img: url,
       };
 
-      await axios.post("https://booking-app-api-production-8253.up.railway.app/api/auth/register", newUser);
+      const response = await axios.post(
+        "https://booking-app-api-production-8253.up.railway.app/api/auth/register",
+        newUser,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        }
+      );
+
+      console.log("User created successfully:", response.data);
+      enqueueSnackbar('User created successfully!', { variant: 'success' });
     } catch (err) {
-      console.log(err);
+      console.error("Error creating user:", err.response?.data || err.message);
+      enqueueSnackbar('Error creating user', { variant: 'error' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
 
   console.log(info);
   return (

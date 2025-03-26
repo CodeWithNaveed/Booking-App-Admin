@@ -1,16 +1,20 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import App from "./App";
-import { AuthContextProvider } from "./context/AuthContext";
-import { DarkModeContextProvider } from "./context/darkModeContext";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import { AuthContextProvider } from './context/AuthContext';
+import { DarkModeContextProvider } from './context/darkModeContext';
+import { SnackbarProvider } from 'notistack';
 
-ReactDOM.render(
-  <React.StrictMode>
-    <AuthContextProvider>
-      <DarkModeContextProvider>
-        <App />
-      </DarkModeContextProvider>
-    </AuthContextProvider>
-  </React.StrictMode>,
-  document.getElementById("root")
+const root = ReactDOM.createRoot(document.getElementById('root'));
+
+root.render(
+  <SnackbarProvider maxSnack={3}>
+    <React.StrictMode>
+      <AuthContextProvider>
+        <DarkModeContextProvider>
+          <App />
+        </DarkModeContextProvider>
+      </AuthContextProvider>
+    </React.StrictMode>
+  </SnackbarProvider>
 );
