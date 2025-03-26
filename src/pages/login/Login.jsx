@@ -146,18 +146,7 @@ const Login = () => {
     
     // Check for access_token in cookies first
     const accessToken = getCookie('access_token');
-    if (accessToken) {
-      // If access_token exists in cookies, store it in localStorage
-      console.log("Access token found in cookies:", accessToken);
-      localStorage.setItem('token', accessToken);
-      console.log("Token stored in localStorage", localStorage.getItem('token'));
-      
-      // Dispatch login success (you might want to fetch user data here)
-      dispatch({ type: "LOGIN_SUCCESS", payload: { token: accessToken } });
-      enqueueSnackbar("Logged in via existing session", { variant: 'success' });
-      navigate("/");
-      return;
-    }
+    
 
     // Basic validation for manual login
     if (!credentials.username.trim() || !credentials.password.trim()) {
@@ -178,9 +167,17 @@ const Login = () => {
       dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
       enqueueSnackbar("Login successful!", { variant: 'success' });
       
-      // Store token if available
-      if (res.data.token) {
-        localStorage.setItem('token', res.data.token);
+      // If access_token exists in cookies, store it in localStorage
+      if (accessToken) {
+        console.log("Access token found in cookies:", accessToken);
+        localStorage.setItem('token', accessToken);
+        console.log("Token stored in localStorage", localStorage.getItem('token'));
+        
+        // Dispatch login success (you might want to fetch user data here)
+        dispatch({ type: "LOGIN_SUCCESS", payload: { token: accessToken } });
+        enqueueSnackbar("Logged in via existing session", { variant: 'success' });
+        navigate("/");
+        return;
       }
 
       navigate("/");
