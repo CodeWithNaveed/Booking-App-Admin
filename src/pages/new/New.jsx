@@ -7,10 +7,14 @@ import useFetch from "../../hooks/useFetch";
 import axios from "axios";
 
 const New = ({ inputs, title }) => {
+  console.log("New component rendering"); // Add this line
+
   const [file, setFile] = useState("");
   const [info, setInfo] = useState({});
 
   const { data, loading, error } = useFetch("https://booking-app-api-production-8253.up.railway.app/api/users");
+
+  console.log("Hook data:", { data, loading, error }); // Add this line
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
