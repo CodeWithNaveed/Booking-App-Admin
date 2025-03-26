@@ -146,6 +146,7 @@ const Login = () => {
     
     // Check for access_token in cookies first
     const accessToken = getCookie('access_token');
+    console.log("Access token found in cookies:", accessToken);
     
 
     // Basic validation for manual login
