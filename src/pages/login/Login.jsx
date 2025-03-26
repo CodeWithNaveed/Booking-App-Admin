@@ -143,11 +143,6 @@ const Login = () => {
 
   const handleClick = async (e) => {
     e.preventDefault();
-    
-    // Check for access_token in cookies first
-    const accessToken = getCookie('access_token');
-    console.log("Access token found in cookies:", accessToken);
-    
 
     // Basic validation for manual login
     if (!credentials.username.trim() || !credentials.password.trim()) {
@@ -169,6 +164,7 @@ const Login = () => {
       enqueueSnackbar("Login successful!", { variant: 'success' });
       
       // If access_token exists in cookies, store it in localStorage
+      const accessToken = getCookie('access_token');
       if (accessToken) {
         console.log("Access token found in cookies:", accessToken);
         localStorage.setItem('token', accessToken);
@@ -182,7 +178,8 @@ const Login = () => {
       }
 
       navigate("/");
-    } catch (err) {
+    } 
+    catch (err) {
       console.error("Login error:", err);
       
       let errorMessage = "Login failed";
