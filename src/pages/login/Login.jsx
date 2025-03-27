@@ -160,8 +160,8 @@ const Login = () => {
       }
 
       // Successful login
-      dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
-      enqueueSnackbar("Login successful!", { variant: 'success' });
+      // dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
+      // enqueueSnackbar("Login successful!", { variant: 'success' });
       
       // If access_token exists in cookies, store it in localStorage
       const accessToken = getCookie('access_token');
@@ -177,7 +177,7 @@ const Login = () => {
         return;
       }
 
-      navigate("/");
+      // navigate("/");
     } 
     catch (err) {
       console.error("Login error:", err);
