@@ -12,6 +12,8 @@ const useFetch = (endpoint) => {
             setLoading(true);
             try {
                 const res = await api.get(endpoint); // Use your instance
+                console.log('res---->',res);
+                console.log('res.data---->>',res.data);
                 setData(res.data);
             } catch (err) {
                 setError(err);
