@@ -27,7 +27,7 @@ instance.interceptors.response.use(
 
       try {
         // Attempt token refresh
-        const refreshToken = getCookie('refresh_token');
+        const refreshToken = getCookie('access_token');
         if (refreshToken) {
           const refreshResponse = await axios.post(
             `${instance.defaults.baseURL}/auth/refresh`,
