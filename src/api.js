@@ -18,19 +18,40 @@ instance.interceptors.request.use((config) => {
 
 instance.interceptors.response.use(
   (response) => response,
-  (error) => {
-    console.log(error);
-    // if (error.response?.status === 401) {
-    //   localStorage.removeItem("user");
-    //   localStorage.removeItem("token");
-    //   window.location.href = "/login";
-    // }
+  async (error) => {
+    const originalRequest = error.config;
 
-    return Promise.reject({
-      message: error.response?.data?.message || error.message,
-      status: error.response?.status,
-      data: error.response?.data
-    });
+    // Handle 401 Unauthorized
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        // Attempt token refresh
+        const refreshToken = getCookie('refresh_token');
+        if (refreshToken) {
+          const refreshResponse = await axios.post(
+            `${instance.defaults.baseURL}/auth/refresh`,
+            { refreshToken }
+          );
+
+          const newToken = refreshResponse.data.token;
+          localStorage.setItem("token", newToken);
+
+          // Retry original request
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return instance(originalRequest);
+        }
+      } catch (refreshError) {
+        console.error("Token refresh failed:", refreshError);
+      }
+
+      // Clear auth data and redirect if refresh fails
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }
+
+    return Promise.reject(error);
   }
 );
 

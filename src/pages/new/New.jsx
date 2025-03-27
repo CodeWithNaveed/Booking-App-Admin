@@ -15,7 +15,13 @@ const New = ({ inputs, title }) => {
   const { enqueueSnackbar } = useSnackbar();
 
   // Using your api instance for fetching users
-  const { data, loading, error } = useFetch("/users", true);
+  const { data: users, loading: usersLoading, error: usersError } = useFetch("/users");
+
+  useEffect(() => {
+    if (usersError) {
+      enqueueSnackbar(usersError.message, { variant: 'error' });
+    }
+  }, [usersError, enqueueSnackbar]);
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -45,12 +51,12 @@ const New = ({ inputs, title }) => {
       // Step 2: Create user with your API (using api instance)
       const newUser = {
         ...info,
-        img: uploadRes.data.secure_url, // Using secure_url from Cloudinary
+        img: uploadRes.data.secure_url, 
       };
 
       await api.post("/auth/register", newUser);
-
       enqueueSnackbar("User created successfully!", { variant: 'success' });
+
       // Reset form
       setFile(null);
       setInfo({});

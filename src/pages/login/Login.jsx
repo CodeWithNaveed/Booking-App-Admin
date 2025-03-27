@@ -26,65 +26,6 @@ const Login = () => {
     setCredentials((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
-  // const handleClick = async (e) => {
-  //   e.preventDefault();
-  //   localStorage.clear();
-
-  //   // Basic validation for manual login
-  //   if (!credentials.username.trim() || !credentials.password.trim()) {
-  //     enqueueSnackbar("Please fill all fields", { variant: 'error' });
-  //     return;
-  //   }
-
-  //   dispatch({ type: "LOGIN_START" });
-
-  //   try {
-  //     const res = await api.post("/auth/login", credentials);
-  //     console.log("Login response:", res.data);
-
-  //     if (!res.data.isAdmin) {
-  //       throw new Error("You are not authorized as admin");
-  //     }
-
-  //     // Successful login
-  //     // dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
-  //     // enqueueSnackbar("Login successful!", { variant: 'success' });
-
-  //     // If access_token exists in cookies, store it in localStorage
-  //     const accessToken = getCookie('access_token');
-  //     if (accessToken) {
-  //       console.log("Access token found in cookies:", accessToken);
-  //       localStorage.setItem('token', accessToken);
-  //       console.log("Token stored in localStorage", localStorage.getItem('token'));
-
-  //       // Dispatch login success (you might want to fetch user data here)
-  //       dispatch({ type: "LOGIN_SUCCESS", payload: { token: accessToken } });
-  //       enqueueSnackbar("Logged in via existing session", { variant: 'success' });
-  //       navigate("/");
-  //       return;
-  //     }
-
-  //     // navigate("/");
-  //   } 
-  //   catch (err) {
-  //     console.error("Login error:", err);
-
-  //     let errorMessage = "Login failed";
-  //     if (err.response?.data?.message) {
-  //       errorMessage = err.response.data.message;
-  //     } else if (err.message) {
-  //       errorMessage = err.message;
-  //     }
-
-  //     dispatch({
-  //       type: "LOGIN_FAILURE",
-  //       payload: { message: errorMessage },
-  //     });
-
-  //     enqueueSnackbar(errorMessage, { variant: 'error' });
-  //   }
-  // };
-
   const handleClick = async (e) => {
     e.preventDefault();
     localStorage.clear();
@@ -108,17 +49,19 @@ const Login = () => {
       }
 
       // 3. Get token from multiple possible sources
-      const accessToken = res.data.accessToken
-        || res.data.token
-        || getCookie('access_token')
+      const token = getCookie('access_token')
         || res.data.details._id;
 
       if (!accessToken) {
         throw new Error("No authentication token received");
       }
 
-      // 4. Store token securely
-      localStorage.setItem('token', accessToken);
+      // 4. Store token and user data
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify({
+        ...res.data.user,
+        isAdmin: res.data.isAdmin
+      }));
       console.log("Token stored successfully");
 
       // 5. Dispatch success with complete user data

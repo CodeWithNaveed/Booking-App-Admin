@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api";
 
-const useFetch = (endpoint) => {
+const useFetch = (endpoint, requireAuth = true) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -13,18 +13,15 @@ const useFetch = (endpoint) => {
 
             try {
                 const res = await api.get(endpoint);
-                console.log('API Response:', res.data);
                 setData(res.data);
             } catch (err) {
-                console.error('API Error:', err);
                 setError({
-                    message: err.message || "Failed to fetch data",
-                    status: err.status
+                    message: err.response?.data?.message || err.message,
+                    status: err.response?.status
                 });
 
-                // Special handling for 401
-                if (err.status === 401) {
-                    console.log('Redirecting handled by interceptor');
+                if (err.response?.status === 401 && requireAuth) {
+                    console.log('Unauthorized - redirect handled by interceptor');
                 }
             } finally {
                 setLoading(false);
@@ -32,22 +29,9 @@ const useFetch = (endpoint) => {
         };
 
         fetchData();
-    }, [endpoint]);
+    }, [endpoint, requireAuth]);
 
-    const reFetch = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const res = await api.get(endpoint);
-            setData(res.data);
-        } catch (err) {
-            setError(err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return { data, loading, error, reFetch };
+    return { data, loading, error };
 };
 
 export default useFetch;
