@@ -87,9 +87,7 @@ const Login = () => {
 
   const handleClick = async (e) => {
     e.preventDefault();
-
-    // Clear previous session data
-    localStorage.removeItem('token'); // Only remove token, not everything
+    localStorage.clear();
 
     // Validate inputs
     if (!credentials.username.trim() || !credentials.password.trim()) {
