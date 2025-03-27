@@ -15,7 +15,7 @@ const New = ({ inputs, title }) => {
   const { enqueueSnackbar } = useSnackbar();
 
   // Using your api instance for fetching users
-  const { data, loading, error } = useFetch("/users");
+  const { data, loading, error } = useFetch("/users", true);
 
   const handleChange = (e) => {
     setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
