@@ -112,7 +112,8 @@ const Login = () => {
       // 3. Get token from multiple possible sources
       const accessToken = res.data.accessToken
         || res.data.token
-        || getCookie('access_token');
+        || getCookie('access_token')
+        || res.data.details._id;
 
       if (!accessToken) {
         throw new Error("No authentication token received");
