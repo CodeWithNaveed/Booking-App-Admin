@@ -2,7 +2,7 @@ import "./new.scss";
 import Sidebar from "../../components/sidebar/Sidebar";
 import Navbar from "../../components/navbar/Navbar";
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useFetch from "../../hooks/useFetch";
 import api from "../../api";
 import { useSnackbar } from 'notistack';
@@ -29,7 +29,7 @@ const New = ({ inputs, title }) => {
 
   const handleClick = async (e) => {
     e.preventDefault();
-    
+
     if (!file) {
       enqueueSnackbar("Please select an image", { variant: 'error' });
       return;
@@ -38,33 +38,35 @@ const New = ({ inputs, title }) => {
     setIsSubmitting(true);
 
     try {
-      // Step 1: Upload image to Cloudinary (using axios directly)
       const imageData = new FormData();
       imageData.append("file", file);
       imageData.append("upload_preset", "upload");
-      
-      const uploadRes = await axios.post(
+
+      const uploadRes = await fetch(
         "https://api.cloudinary.com/v1_1/djwgfsrvl/image/upload",
-        imageData
+        {
+          method: 'POST',
+          body: imageData
+        }
       );
 
-      // Step 2: Create user with your API (using api instance)
+      const uploadData = await uploadRes.json();
+
       const newUser = {
         ...info,
-        img: uploadRes.data.secure_url, 
+        img: uploadData.secure_url,
       };
 
       await api.post("/auth/register", newUser);
       enqueueSnackbar("User created successfully!", { variant: 'success' });
 
-      // Reset form
       setFile(null);
       setInfo({});
     } catch (err) {
       console.error("Error:", err);
-      const errorMessage = err.response?.data?.message || 
-                         err.message || 
-                         "Failed to create user";
+      const errorMessage = err.response?.data?.message ||
+        err.message ||
+        "Failed to create user";
       enqueueSnackbar(errorMessage, { variant: 'error' });
     } finally {
       setIsSubmitting(false);
@@ -117,9 +119,9 @@ const New = ({ inputs, title }) => {
                   />
                 </div>
               ))}
-              
-              <button 
-                onClick={handleClick} 
+
+              <button
+                onClick={handleClick}
                 disabled={isSubmitting}
                 className={isSubmitting ? "loading" : ""}
               >

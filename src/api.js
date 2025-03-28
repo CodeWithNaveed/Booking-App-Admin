@@ -1,17 +1,37 @@
 import axios from "axios";
 
+// Helper function to get cookies
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
 const instance = axios.create({
-  baseURL: "https://booking-app-api-production-8253.up.railway.app/api",
+  baseURL: "http://localhost:4400/api",
+  // baseURL: "https://booking-app-api-production-8253.up.railway.app/api",
   withCredentials: true,
 });
 
+// instance.interceptors.request.use((config) => {
+//   const token = localStorage.getItem("token");
+//   if (token) {
+//     config.headers.Authorization = `Bearer ${token}`;
+//     console.log('Authorization header set with token');
+//   } else {
+//     console.warn('No token found in localStorage');
+//   }
+//   return config;
+// });
+
 instance.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-    console.log('Authorization header set with token');
-  } else {
-    console.warn('No token found in localStorage');
+  if (!config.url.includes('cloudinary.com')) {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.warn('No token found in localStorage');
+    }
   }
   return config;
 });
@@ -27,14 +47,14 @@ instance.interceptors.response.use(
 
       try {
         // Attempt token refresh
-        const refreshToken = getCookie('access_token');
+        const refreshToken = getCookie('refreshToken'); // Changed from 'access_token' to 'refreshToken'
         if (refreshToken) {
           const refreshResponse = await axios.post(
-            `${instance.defaults.baseURL}/auth/login`,
+            `${instance.defaults.baseURL}/auth/refresh`, // Changed endpoint to /refresh
             { refreshToken }
           );
 
-          const newToken = refreshResponse.data.details._id;
+          const newToken = refreshResponse.data.accessToken; // Changed to accessToken
           localStorage.setItem("token", newToken);
 
           // Retry original request
@@ -48,7 +68,8 @@ instance.interceptors.response.use(
       // Clear auth data and redirect if refresh fails
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "/login";
+      // window.location.href = "/login";
+      console.log(error);
     }
 
     return Promise.reject(error);

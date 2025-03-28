@@ -27,7 +27,6 @@ const useFetch = (endpoint, requireAuth = true) => {
                 setLoading(false);
             }
         };
-
         fetchData();
     }, [endpoint, requireAuth]);
 
