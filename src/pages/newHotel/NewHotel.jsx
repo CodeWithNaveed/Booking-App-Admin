@@ -35,59 +35,59 @@ const NewHotel = () => {
       enqueueSnackbar("Please select at least one image", { variant: 'error' });
       return;
     }
-
+  
     setIsSubmitting(true);
-
+  
     try {
-      // 1. Upload images to Cloudinary using axios
-      const uploadPromises = Array.from(files).map(async (file) => {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "upload");
-        
-        const response = await axios.post(
-          "https://api.cloudinary.com/v1_1/djwgfsrvl/image/upload",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data"
-            },
-            // Optional: Add timeout
-            timeout: 30000 // 30 seconds
+      // 1. Upload images using a completely independent method
+      const imageUrls = await Promise.all(
+        Array.from(files).map(async (file) => {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("upload_preset", "upload");
+  
+          // Using fetch API instead of axios to avoid any global axios configs
+          const response = await fetch(
+            "https://api.cloudinary.com/v1_1/djwgfsrvl/image/upload",
+            {
+              method: "POST",
+              body: formData,
+              // No headers needed for unsigned uploads
+            }
+          );
+  
+          if (!response.ok) {
+            throw new Error(`Upload failed: ${response.statusText}`);
           }
-        );
-        return response.data.secure_url;
-      });
-
-      const imageUrls = await Promise.all(uploadPromises);
-
-      // 2. Create hotel using your api instance
+  
+          const data = await response.json();
+          return data.secure_url;
+        })
+      );
+  
+      // 2. Create hotel using your authenticated api instance
       const newHotel = {
         ...info,
         rooms,
         photos: imageUrls,
       };
-
-      const response = await api.post("/hotels", newHotel);
-      
+  
+      await api.post("/hotels", newHotel);
       enqueueSnackbar("Hotel created successfully!", { variant: 'success' });
-      
+  
       // Reset form
       setFiles(null);
       setInfo({});
       setRooms([]);
-
+  
     } catch (err) {
       console.error("Error:", err);
       
       let errorMessage = "Failed to create hotel";
-      if (err.response) {
-        // Handle axios errors
-        if (err.response.status === 401) {
-          errorMessage = "Unauthorized - Please login again";
-        } else if (err.response.data?.message) {
-          errorMessage = err.response.data.message;
-        }
+      if (err.message.includes("Upload failed")) {
+        errorMessage = "Image upload failed. Please try again.";
+      } else if (err.response?.status === 401) {
+        errorMessage = "Unauthorized - Please login again";
       } else if (err.message) {
         errorMessage = err.message;
       }

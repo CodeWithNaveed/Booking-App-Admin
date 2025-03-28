@@ -14,6 +14,7 @@ const Datatable = ({ columns }) => {
 
   useEffect(() => {
     if (Array.isArray(data)) {
+      console.log(data);
       setList(data);
     } else {
       setList([]); // Ensure list is always an array
