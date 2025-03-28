@@ -30,11 +30,11 @@ instance.interceptors.response.use(
         const refreshToken = getCookie('access_token');
         if (refreshToken) {
           const refreshResponse = await axios.post(
-            `${instance.defaults.baseURL}/auth/refresh`,
+            `${instance.defaults.baseURL}/auth/login`,
             { refreshToken }
           );
 
-          const newToken = refreshResponse.data.token;
+          const newToken = refreshResponse.data.details._id;
           localStorage.setItem("token", newToken);
 
           // Retry original request

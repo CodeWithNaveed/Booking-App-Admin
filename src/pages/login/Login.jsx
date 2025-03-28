@@ -52,7 +52,7 @@ const Login = () => {
       const token = getCookie('access_token')
         || res.data.details._id;
 
-      if (!accessToken) {
+      if (!token) {
         throw new Error("No authentication token received");
       }
 
@@ -68,7 +68,7 @@ const Login = () => {
       dispatch({
         type: "LOGIN_SUCCESS",
         payload: {
-          token: accessToken,
+          token: token,
           user: res.data.user || { username: credentials.username }
         }
       });
