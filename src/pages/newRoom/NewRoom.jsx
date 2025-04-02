@@ -14,11 +14,25 @@ const NewRoom = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
 
-  // Using api instance with relative path
   const { data, loading } = useFetch("/hotels");
 
   const handleChange = (e) => {
-    setInfo((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+    const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
+    setInfo((prev) => ({ ...prev, [e.target.id]: value }));
+  };
+
+  const validateRoomNumbers = (roomString) => {
+    const roomNumbers = roomString.split(",")
+      .map(room => room.trim())
+      .filter(room => room !== "");
+
+    for (const room of roomNumbers) {
+      if (isNaN(Number(room))) {
+        throw new Error(`"${room}" is not a valid room number. Please enter numbers only.`);
+      }
+    }
+
+    return roomNumbers.map(room => ({ number: Number(room) }));
   };
 
   const handleClick = async (e) => {
@@ -37,24 +51,27 @@ const NewRoom = () => {
     setIsSubmitting(true);
 
     try {
-      const roomNumbers = rooms.split(",")
-        .map(room => room.trim())
-        .filter(room => room !== "")
-        .map(room => ({ number: room }));
+      const roomNumbers = await validateRoomNumbers(rooms);
 
-      await api.post(`/rooms/${hotelId}`, { 
-        ...info, 
+      const payload = { 
+        ...info,
         roomNumbers 
-      });
+      };
 
+      console.log("Sending payload:", payload);
+
+      await api.post(`/rooms/${hotelId}`, payload);
       enqueueSnackbar("Room created successfully!", { variant: 'success' });
+      
       // Reset form
       setInfo({});
       setRooms("");
       setHotelId("");
     } catch (err) {
       console.error("Error creating room:", err);
-      const errorMessage = err.response?.data?.message || "Failed to create room";
+      const errorMessage = err.response?.data?.message || 
+                         err.message || 
+                         "Failed to create room";
       enqueueSnackbar(errorMessage, { variant: 'error' });
     } finally {
       setIsSubmitting(false);
@@ -77,20 +94,26 @@ const NewRoom = () => {
                   <label>{input.label}</label>
                   <input
                     id={input.id}
-                    type={input.type}
+                    type={input.type === 'number' ? 'number' : 'text'}
                     placeholder={input.placeholder}
                     onChange={handleChange}
                     value={info[input.id] || ''}
+                    min={input.type === 'number' ? '1' : undefined}
                   />
                 </div>
               ))}
 
-              <div className="formInput">
+              <div className="formInput" style={{width: '300px'}}>
                 <label>Rooms</label>
                 <textarea
                   value={rooms}
-                  onChange={(e) => setRooms(e.target.value)}
+                  onChange={(e) => {
+                    // Basic validation - allow only numbers, commas and spaces
+                    const value = e.target.value.replace(/[^0-9,\s]/g, '');
+                    setRooms(value);
+                  }}
                   placeholder="Enter comma separated room numbers (e.g., 101, 102, 103)"
+                  style={{width: '100%' }}
                 />
               </div>
 

@@ -1,6 +1,5 @@
 import axios from "axios";
 
-// Helper function to get cookies
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -8,21 +7,10 @@ function getCookie(name) {
 }
 
 const instance = axios.create({
-  baseURL: "http://localhost:4400/api",
-  // baseURL: "https://booking-app-api-production-8253.up.railway.app/api",
+  // baseURL: "http://localhost:4400/api",
+  baseURL: "https://booking-app-api-production-8253.up.railway.app/api",
   withCredentials: true,
 });
-
-// instance.interceptors.request.use((config) => {
-//   const token = localStorage.getItem("token");
-//   if (token) {
-//     config.headers.Authorization = `Bearer ${token}`;
-//     console.log('Authorization header set with token');
-//   } else {
-//     console.warn('No token found in localStorage');
-//   }
-//   return config;
-// });
 
 instance.interceptors.request.use((config) => {
   if (!config.url.includes('cloudinary.com')) {
@@ -47,14 +35,14 @@ instance.interceptors.response.use(
 
       try {
         // Attempt token refresh
-        const refreshToken = getCookie('refreshToken'); // Changed from 'access_token' to 'refreshToken'
+        const refreshToken = getCookie('refreshToken');
         if (refreshToken) {
           const refreshResponse = await axios.post(
-            `${instance.defaults.baseURL}/auth/refresh`, // Changed endpoint to /refresh
+            `${instance.defaults.baseURL}/auth/refresh`,
             { refreshToken }
           );
 
-          const newToken = refreshResponse.data.accessToken; // Changed to accessToken
+          const newToken = refreshResponse.data.accessToken;
           localStorage.setItem("token", newToken);
 
           // Retry original request
